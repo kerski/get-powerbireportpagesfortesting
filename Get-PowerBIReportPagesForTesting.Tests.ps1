@@ -8,6 +8,10 @@ Describe 'Get-PowerBIReportPagesForTesting' {
         # Retrieve specific variables from json so we don't keep sensitive values in 
         # source control
         $variables = Get-Content .\Tests.config.json | ConvertFrom-Json
+        $secret = $variables.TestClientSecret | ConvertTo-SecureString -AsPlainText -Force
+        $badSecret = $variables.TestBadClientSecret | ConvertTo-SecureString -AsPlainText -Force
+        $goodCredential = [System.Management.Automation.PSCredential]::new($variables.TestServicePrincipal, $secret)  
+        $badCredential = [System.Management.Automation.PSCredential]::new($variables.TestBadServicePrincipal, $badSecret)      
         $testPath1 = ".\PowerBIReportPages1.csv"
         $testPath2 = ".\PowerBIReportPages2.csv"
         $testPath3 = ".\PowerBIReportPages3.csv"
@@ -42,8 +46,7 @@ Describe 'Get-PowerBIReportPagesForTesting' {
     # Check for bad workspace Id
     It 'Should output a failure if the workspace Id is not valid' -Tag "Bad Workspace Id For Dataset"{
         $results1 = @(Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestBadWorkspaceGuid `
-                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -ClientId $variables.TestServicePrincipal `
-                -ClientSecret $variables.TestClientSecret `
+                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -Credential $goodCredential `
                 -TenantId "$($variables.TestTenant)" `
                 -LogOutput "Table" `
                 -Environment Public `
@@ -59,8 +62,7 @@ Describe 'Get-PowerBIReportPagesForTesting' {
     # Check for bad workspace guid
     It 'Should output a failure if the workspace guid is not valid' -Tag "Bad Workspace Guid" {
         $results = @(Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestWorkspace2 `
-            -WorkspaceIdsToCheck @($variables.TestBadWorkspaceToCheck) ` -ClientId $variables.TestServicePrincipal `
-            -ClientSecret $variables.TestClientSecret `
+            -WorkspaceIdsToCheck @($variables.TestBadWorkspaceToCheck) ` -Credential $goodCredential `
             -TenantId "$($variables.TestTenant)" `
             -LogOutput "Table" `
             -Environment Public `
@@ -74,10 +76,9 @@ Describe 'Get-PowerBIReportPagesForTesting' {
     }
     
     # Check for bad Client Id
-    It 'Should output a failure if the client Id is not valid' -Tag "Bad Client Id"{
+    It 'Should output a failure if the credential is not valid' -Tag "Bad Credential" {
         $results1 = @(Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestWorkspace2 `
-            -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -ClientId $variables.TestBadServicePrincipal `
-            -ClientSecret $variables.TestClientSecret `
+            -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -Credential $badCredential `
             -TenantId "$($variables.TestTenant)" `
             -LogOutput "Table" `
             -Environment Public `
@@ -90,30 +91,11 @@ Describe 'Get-PowerBIReportPagesForTesting' {
         $errors1[$len1 - 1].message.StartsWith("Unable to connect") | Should -Be $true
      
     }
-# Check for bad Client Secret
-It 'Should output a failure if the ClientSecret is not valid' -Tag "Bad Client Secret"{
-    $results1 = @(Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestWorkspace2 `
-        -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -ClientId $variables.TestServicePrincipal `
-        -ClientSecret $variables.TestBadClientSecret `
-        -TenantId "$($variables.TestTenant)" `
-        -LogOutput "Table" `
-        -Environment Public `
-        -Path $testPath1
-    )
-    Write-Host ($results1 | Format-Table | Out-String)
-    $errors1 = $results1 | Where-Object { $_.LogType -eq 'Error' }
-    $len1 = $errors.Length 
-    $errors1.Length | Should -BeGreaterThan 0
-    $errors1[$len1 - 1].message.StartsWith("Unable to connect") | Should -Be $true
- 
-}
-
 
     # Check for bad tenant Id
     It 'Should output a failure if the Tenant Id is not valid' -Tag "Bad Tenant Id"{
         $results1 = @(Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestWorkspace2 `
-                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -ClientId $variables.TestServicePrincipal `
-                -ClientSecret $variables.TestClientSecret `
+                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -Credential $goodCredential `
                 -TenantId "$($variables.TestBadTenant)" `
                 -LogOutput "Table" `
                 -Environment Public `
@@ -129,8 +111,7 @@ It 'Should output a failure if the ClientSecret is not valid' -Tag "Bad Client S
     # Check for Contents of csv file
     It 'Should check if data is present in a PowerBIReportPages2.csv file with Dataset that has no RLS' -Tag "CSV File Content" {
         $results1 = @(Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestWorkspace2 `
-                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -ClientId $variables.TestServicePrincipal `
-                -ClientSecret $variables.TestClientSecret `
+                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -Credential $goodCredential `
                 -TenantId "$($variables.TestTenant)" `
                 -LogOutput "Table" `
                 -Environment Public `
@@ -152,8 +133,7 @@ It 'Should output a failure if the ClientSecret is not valid' -Tag "Bad Client S
     # Check for Contents of csv file
     It 'Should check if data is present in a PowerBIReportPages2.csv file with Dataset that has RLS' -Tag "CSV File Content" {
         $results1 = @(Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset1 -WorkspaceId $variables.TestWorkspace1 `
-                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck1) ` -ClientId $variables.TestServicePrincipal `
-                -ClientSecret $variables.TestClientSecret `
+                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck1) ` -Credential $goodCredential `
                 -TenantId "$($variables.TestTenant)" `
                 -LogOutput "Table" `
                 -Environment Public `
@@ -175,8 +155,7 @@ It 'Should output a failure if the ClientSecret is not valid' -Tag "Bad Client S
     # Check for Path
     It 'Should check if path already exist' -Tag "CSV File Content" {
         $results1 = @(Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset1 -WorkspaceId $variables.TestWorkspace1 `
-                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck1) ` -ClientId $variables.TestServicePrincipal `
-                -ClientSecret $variables.TestClientSecret `
+                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck1) ` -Credential $goodCredential `
                 -TenantId "$($variables.TestTenant)" `
                 -LogOutput "Table" `
                 -Environment Public `
@@ -193,8 +172,7 @@ It 'Should output a failure if the ClientSecret is not valid' -Tag "Bad Client S
     # Check for Path
     It 'Should get SampleModelThin data' -Tag "Sample Model" {
         $results1 = @(Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset3 -WorkspaceId $variables.TestWorkspace3 `
-                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck1) ` -ClientId $variables.TestServicePrincipal `
-                -ClientSecret $variables.TestClientSecret `
+                -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck1) ` -Credential $goodCredential `
                 -TenantId "$($variables.TestTenant)" `
                 -LogOutput "Table" `
                 -Environment Public `

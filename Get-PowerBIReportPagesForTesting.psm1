@@ -16,35 +16,22 @@ Import-Module -Name SqlServer
 
 <#
     .SYNOPSIS
-    This module runs through the DAX Query View files that end with .Tests or .Test and output the results. 
-    The provided PowerShell script facilitates Data Query View (DQV) testing for datasets within a Powerbi workspace.
-
-    Tests should follow the DAX Query View Testing Pattern that returns a table messages.
-
-    For more information, please visit this link: https://github.com/kerski/fabric-dataops-patterns/blob/main/DAX%20Query%20View%20Testing%20Pattern/dax-query-view-testing-pattern.md
-
-    
-    .PARAMETER TenantId
-    The ID of the tenant where the Power BI workspace resides.
-
-    .PARAMETER WorkspaceName
-    The name of the Power BI workspace where the datasets are located.
-
+    This module identifies the reports and pages in a Power BI workspace that use a specific dataset/semantic model.
+    .PARAMETER DatasetId
+    The ID of the dataset to check for reports and pages.
+    .PARAMETER WorkspaceId
+    The ID of the workspace where the dataset resides.
+    .PARAMETER WorkspaceIdsToCheck
+    An array of workspace IDs to check for reports and pages that use the specified dataset.
     .PARAMETER Credential
     A PSCredential object containing the credentials used for authentication.
-
-    .PARAMETER ClientId
-        ClientId used for authentication.
-
-    .PARAMETER ClientSecret
-        ClientSecret used for authentication.
-
-    .PARAMETER DatasetId
-    An optional array of dataset IDs to specify which datasets to test. If not provided, all datasets will be tested.
-
+    .PARAMETER TenantId
+    The ID of the tenant where the Power BI workspace resides.
+    .PARAMETER Path
+    The path to the CSV file where the report details will be saved.
     .PARAMETER LogOutput
     Specifies where the log messages should be written. Options are 'ADO' (Azure DevOps Pipeline), 'Host', or 'Table'.
-
+    
     When ADO is chosen:
     - Any warning will be logged as a warning in the pipeline. An example of a warning would be if a dataset/semantic model has no tests to conduct.
     - Any failed tests will be logged as an error in the pipeline.
@@ -59,41 +46,44 @@ Import-Module -Name SqlServer
         - LogType (String): This is either Debug, Warning, Error, or Failure.
         - IsTestResult (Boolean): This indicates if the event was a test or not. This is helpful for filtering results.
         - DataSource: The location of the workspace (if in the service) or the localhost (if local testing) of the semantic model.
-        - ModelName: The name of the semantic model.
+        - ModelName: The name of the semantic model.    
+    .PARAMETER Environment
+    The Power BI environment to connect to. Options are 'Public', 'Germany', 'China', 'USGov', 'USGovHigh', 'USGovDoD'.
+    .PARAMETER roleUserName
+    The name of the user to test the RLS for.
 
 
     .EXAMPLE
     Run tests for all datasets/semantic models in the workspace and log output using Azure DevOps' logging commands.
-    Get-PowerBIReportPages -WorkspaceIds @("WORKSPACE GUID1","WORKSPACE GUID2") `
-            -DatasetName "DATASET_NAME" `
-            -ClientId "CLIENT_ID" `
-            -ClientSecret "SECRET" `
-            -TenantId "TENANT_ID" `
-            -LogOutput "ADO" 
+    Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestWorkspace2 `
+            -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -Credential $Credential `
+            -TenantId "$($variables.TestTenant)" `
+            -LogOutput "ADO" `
+            -Environment Public `
+            -Path $testPath1
 
     .EXAMPLE
     Run tests for specific datasets/semantic models in the workspace and return output in an array of objects (table).
-    Get-PowerBIReportPages -WorkspaceIds @("WORKSPACE GUID1","WORKSPACE GUID2") `
-            -DatasetName "DATASET_NAME" `
-            -ClientId "CLIENT_ID" `
-            -ClientSecret "SECRET" `
-            -TenantId "TENANT_ID" `
-            -LogOutput "Table"
+    Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestWorkspace2 `
+            -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -Credential $Credential `
+            -TenantId "$($variables.TestTenant)" `
+            -LogOutput "Table" `
+            -Environment Public `
+            -Path $testPath1
 #>
 function Get-PowerBIReportPagesForTesting {
     [CmdletBinding()]
     [OutputType([System.Object[]])]
     param (
-        [Parameter(Position = 0, Mandatory = $true)][String]$DatasetId,
-        [Parameter(Position = 1, Mandatory = $true)][String]$WorkspaceId,        
+        [Parameter(Position = 0, Mandatory = $true)][Alias('SemanticModelId')][String]$DatasetId,
+        [Parameter(Position = 1, Mandatory = $true)][String]$WorkspaceId,
         [Parameter(Position = 2, Mandatory = $true)][array]$WorkspaceIdsToCheck,
-        [Parameter(Position = 3, Mandatory = $true)][String]$ClientId,
-        [Parameter(Position = 4, Mandatory = $true)][String]$ClientSecret,
-        [Parameter(Position = 5, Mandatory = $true)][String]$TenantId,
-        [Parameter(Position = 6, Mandatory = $true)][String]$Path,
-        [Parameter(Position = 7, Mandatory = $true)][String]$LogOutput,
-        [Parameter(Position = 8, Mandatory = $false)][Microsoft.PowerBI.Common.Abstractions.PowerBIEnvironmentType]$Environment,
-        [Parameter(Position = 9, Mandatory = $false)]$roleUserName
+        [Parameter(Position = 3, Mandatory = $true)][System.Management.Automation.PSCredential]$Credential,
+        [Parameter(Position = 4, Mandatory = $true)][String]$TenantId,
+        [Parameter(Position = 5, Mandatory = $true)][String]$Path,
+        [Parameter(Position = 6, Mandatory = $true)][String]$LogOutput,
+        [Parameter(Position = 7, Mandatory = $false)][Microsoft.PowerBI.Common.Abstractions.PowerBIEnvironmentType]$Environment,
+        [Parameter(Position = 8, Mandatory = $false)]$roleUserName
     )
 
     # Setup TLS 12
@@ -106,10 +96,8 @@ function Get-PowerBIReportPagesForTesting {
     $errorCount = 0
 
     try {
-
         # Map to correct XMLA Prefix
         $xMLAPrefix = "powerbi://api.powerbigov.com/v1.0/myorg/"
-
         switch($Environment){
             "Public" {$xMLAPrefix = "powerbi://api.powerbi.com/v1.0/myorg/"}
             "Germany" {$xMLAPrefix = "powerbi://api.powerbi.de/v1.0/myorg/"}
@@ -122,12 +110,8 @@ function Get-PowerBIReportPagesForTesting {
 
         # Establish Connection
         try {
-            # Set Client Secret as Secure String
-            $secret = $ClientSecret | ConvertTo-SecureString -AsPlainText -Force
-            $credentials = [System.Management.Automation.PSCredential]::new($ClientId, $secret)
-
             # Connect to Power BI Service Account
-            $connectionStatus = Connect-PowerBIServiceAccount -Credential $Credentials `
+            $connectionStatus = Connect-PowerBIServiceAccount -Credential $Credential `
                                                               -ServicePrincipal `
                                                               -Tenant $TenantId `
                                                               -Environment $Environment
@@ -147,7 +131,7 @@ function Get-PowerBIReportPagesForTesting {
         }
 
         try{
-            # Get Dataset 
+            # Get Dataset
             $datasetObj = Get-PowerBIDataset -WorkspaceId $WorkspaceId -Id $DatasetId -Verbose
 
             # Check returned object
@@ -198,7 +182,7 @@ function Get-PowerBIReportPagesForTesting {
                     $result = Invoke-ASCmd -Server $datasource `
                         -Database $datasetObj.Name `
                         -Query "select * from `$SYSTEM.DISCOVER_POWERBI_ROLES" `
-                        -Credential $credentials `
+                        -Credential $Credential `
                         -TenantId $TenantId `
                         -ServicePrincipal `
                         -Verbose
@@ -254,8 +238,8 @@ function Get-PowerBIReportPagesForTesting {
                                                 workspace_id = $workspaceId
                                                 report_id   = $report.Id
                                                 page_id     = $page.Name
-                                            }  
-                                            $counter++                                      
+                                            }
+                                            $counter++
                                     }#end role check
                                 }# foreach page
                             }# end if page response
@@ -293,12 +277,12 @@ function Get-PowerBIReportPagesForTesting {
 
     # Handle switch for CI
     if ($LogOutput -eq "ADO") {
-        return $script:messages 
+        return $script:messages
         exit $errorCount
     }
     else {
-        return $script:messages 
-    } 
+        return $script:messages
+    }
 }
 
 
