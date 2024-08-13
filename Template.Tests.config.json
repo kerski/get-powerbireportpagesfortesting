@@ -1,0 +1,20 @@
+{
+    "TestServicePrincipal":"x",
+    "TestBadServicePrincipal":"x",
+    "TestClientSecret":"x",
+    "TestBadClientSecret":"x",
+    "TestTenant":"x",
+    "TestBadTenant":"x",
+    "TestWorkspaceToCheck1": ["x"],
+    "TestWorkspace1": "x",
+    "TestDataset1":"x",
+    "TestBadWorkspaceToCheck": ["x"],
+    "TestBadWorkspaceGuid": "x",
+    "TestWorkspaceToCheck2": ["x"],
+    "TestWorkspace2": "x",    
+    "TestDataset2":"x",
+    "TestWorkspaceToCheck3":["x"],
+    "TestWorkspace3":"x",
+    "TestDataset3":"x",
+    "TestReportThatShouldAppear3":"x"
+}
