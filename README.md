@@ -15,7 +15,7 @@ This module identifies the reports and pages in a Power BI workspace that use a 
 ```
 Get-PowerBIReportPagesForTesting [-DatasetId] <String> [-WorkspaceId] <String> [-WorkspaceIdsToCheck] <Array>
  [-Credential] <PSCredential> [-TenantId] <String> [-Path] <String> [-LogOutput] <String>
- [[-Environment] <PowerBIEnvironmentType>] [[-roleUserName] <Object>] [-ProgressAction <ActionPreference>]
+ [[-Environment] <PowerBIEnvironmentType>] [[-RoleUserName] <Object>] [-ProgressAction <ActionPreference>]
  [<CommonParameters>]
 ```
 
@@ -189,7 +189,7 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -roleUserName
+### -RoleUserName
 The name of the user to test the RLS for.
 
 ```yaml

@@ -49,7 +49,7 @@ Import-Module -Name SqlServer
         - ModelName: The name of the semantic model.    
     .PARAMETER Environment
     The Power BI environment to connect to. Options are 'Public', 'Germany', 'China', 'USGov', 'USGovHigh', 'USGovDoD'.
-    .PARAMETER roleUserName
+    .PARAMETER RoleUserName
     The name of the user to test the RLS for.
 
 
@@ -83,7 +83,7 @@ function Get-PowerBIReportPagesForTesting {
         [Parameter(Position = 5, Mandatory = $true)][String]$Path,
         [Parameter(Position = 6, Mandatory = $true)][String]$LogOutput,
         [Parameter(Position = 7, Mandatory = $false)][Microsoft.PowerBI.Common.Abstractions.PowerBIEnvironmentType]$Environment,
-        [Parameter(Position = 8, Mandatory = $false)]$roleUserName
+        [Parameter(Position = 8, Mandatory = $false)]$RoleUserName
     )
 
     # Setup TLS 12
