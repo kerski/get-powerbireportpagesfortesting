@@ -7,6 +7,49 @@ schema: 2.0.0
 
 # Get-PowerBIReportPagesForTesting
 
+# Get-PowerBIReportPagesForTesting Module
+
+This PowerShell module `Get-PowerBIReportPagesForTesting` helps identify the reports and pages in a Power BI workspace that use a specific dataset/semantic model. It also provides logging capabilities for various output formats, including Azure DevOps (ADO) pipelines, host console, and tables.
+
+## Features
+
+- Identify reports and pages using a specific dataset across multiple Power BI workspaces.
+- Supports different Power BI environments (`Public`, `Germany`, `China`, `USGov`, etc.).
+- Flexible logging options (ADO, Host, Table).
+- Outputs results to a CSV file or as an array of objects.
+
+## Prerequisites
+
+- PowerShell 5.1 or higher.
+- PowerShell Modules:
+  - `MicrosoftPowerBIMgmt` (for Power BI operations)
+  - `SqlServer` (for SQL-related operations)
+  
+  If the modules are not installed, the script will install them automatically.
+
+## Installation
+
+1. Clone the repository or download the `.psm1` file.
+2. Import the module using:
+
+    ```powershell
+    Import-Module -Path "Path\To\Get-PowerBIReportPagesForTesting.psm1"
+    ```
+
+## Usage
+
+The function `Get-PowerBIReportPagesForTesting` has several parameters that allow you to customize its behavior.
+
+### Syntax
+
+```powershell
+Get-PowerBIReportPagesForTesting -DatasetId <String> -WorkspaceId <String> `
+    -WorkspaceIdsToCheck <Array> -Credential <PSCredential> `
+    -TenantId <String> -Path <String> `
+    -LogOutput <String> [-Environment <Microsoft.PowerBI.Common.Abstractions.PowerBIEnvironmentType>] `
+    [-RoleUserName <String>]
+
+##################################################################################################################################################################
 ## SYNOPSIS
 This module identifies the reports and pages in a Power BI workspace that use a specific dataset/semantic model.
 
