@@ -33,7 +33,7 @@ This PowerShell module `Get-PowerBIReportPagesForTesting` helps identify the rep
 2. Import the module using:
 
     ```powershell
-    Import-Module -Path "Path\To\Get-PowerBIReportPagesForTesting.psm1"
+    Import-Module -Name Get-PowerBIReportPagesForTesting.psm1
     ```
 
 ## Usage
