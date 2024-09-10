@@ -2,7 +2,7 @@ Describe 'Get-PowerBIReportPagesForTesting' {
     BeforeAll { 
         $dir = (pwd).Path
         Remove-Module -Name Get-PowerBIReportPagesForTesting -Force -ErrorAction SilentlyContinue
-        Import-Module "$($dir)\Get-PowerBIReportPagesForTesting.psm1"
+        Import-Module "$($dir)\Get-PowerBIReportPagesForTesting\Get-PowerBIReportPagesForTesting.psm1"
         Import-Module -Name MicrosoftPowerBIMgmt
         Import-Module -Name SqlServer
         # Retrieve specific variables from json so we don't keep sensitive values in 

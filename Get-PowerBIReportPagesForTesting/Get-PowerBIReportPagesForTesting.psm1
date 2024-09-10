@@ -7,7 +7,7 @@ Import-Module -Name MicrosoftPowerBIMgmt
 
 # Install SqlServer Powershell Module if Needed
 if (Get-Module -ListAvailable -Name "SqlServer") {
-    Write-Host -ForegroundColor Cyan "SqlServer already installed"
+    Write-Output -ForegroundColor Cyan "SqlServer already installed"
 }
 else {
     Install-Module -Name SqlServer -Scope CurrentUser -AllowClobber -Force
@@ -31,7 +31,7 @@ Import-Module -Name SqlServer
     The path to the CSV file where the report details will be saved.
     .PARAMETER LogOutput
     Specifies where the log messages should be written. Options are 'ADO' (Azure DevOps Pipeline), 'Host', or 'Table'.
-    
+
     When ADO is chosen:
     - Any warning will be logged as a warning in the pipeline. An example of a warning would be if a dataset/semantic model has no tests to conduct.
     - Any failed tests will be logged as an error in the pipeline.
@@ -46,7 +46,7 @@ Import-Module -Name SqlServer
         - LogType (String): This is either Debug, Warning, Error, or Failure.
         - IsTestResult (Boolean): This indicates if the event was a test or not. This is helpful for filtering results.
         - DataSource: The location of the workspace (if in the service) or the localhost (if local testing) of the semantic model.
-        - ModelName: The name of the semantic model.    
+        - ModelName: The name of the semantic model.
     .PARAMETER Environment
     The Power BI environment to connect to. Options are 'Public', 'Germany', 'China', 'USGov', 'USGovHigh', 'USGovDoD'.
     .PARAMETER RoleUserName

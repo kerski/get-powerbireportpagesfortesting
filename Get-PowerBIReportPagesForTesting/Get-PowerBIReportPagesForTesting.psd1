@@ -12,7 +12,7 @@
     RootModule = 'Get-PowerBIReportPagesForTesting.psm1'
     
     # Version number of this module.
-    ModuleVersion = '0.0.1'
+    ModuleVersion = '0.0.2'
     
     # Supported PSEditions
     CompatiblePSEditions = @("Core")
@@ -21,7 +21,7 @@
     GUID = '17299fa1-910f-4e8c-9dd0-e6ca7ed2a992'
     
     # Author of this module
-    Author = 'John Kerski'
+    Author = 'John Kerski and Prachiti Jadhev'
     
     # Company or vendor of this module
     CompanyName = 'kerski.tech'
