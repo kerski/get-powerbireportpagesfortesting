@@ -55,6 +55,10 @@ The function `Get-PowerBIReportPagesForTesting` has several parameters that allo
 5. TenantId (Mandatory): The Azure AD tenant ID where the Power BI workspace resides.
 6. Path (Mandatory): The path to the CSV file where results will be saved.
 7. LogOutput (Mandatory): Specifies the log destination. {'ADO','Host', 'Table'}
+   Logging Options
+   ADO: Logs directly to Azure DevOps pipelines using task logging commands. Errors, warnings, and successful tests are logged with their respective statuses.
+   Host: Logs output to the PowerShell console.
+   Table: Logs output to an array of custom objects which can be used for further analysis or reporting.
 8. Environment (Optional): Specifies the Power BI environment to connect to. {Public, Germany, China, USGov, USGovHigh, USGovDoD}
 9. RoleUserName (Optional): The name of the user for which Role-Level Security (RLS) testing will be conducted.
 
@@ -109,7 +113,6 @@ Get-PowerBIReportPagesForTesting -DatasetId "TestDataset" `
 ```
 ## Testing
 The module includes a suite of tests in `Get-PowerBIReportPagesForTesting.Tests.ps1` to ensure the module's functionality. The test script is written using Pester, a testing framework for PowerShell. 
-
 ### Running Tests
 Install Pester (if not already installed):
 ``` 
@@ -119,7 +122,6 @@ Install-Module -Name Pester -Force -Scope CurrentUser
 ```
 Invoke-Pester
 ```
-
 ### Test Descriptions
 1. Module Existence: Verifies that the Get-PowerBIReportPagesForTesting module is installed.
 2. Invalid Workspace ID: Ensures the module handles invalid workspace IDs correctly.
@@ -169,7 +171,20 @@ Tests.config.json
 
 By using the `Tests.config.json` file, you keep your sensitive information secure and separate from your code, which is a best practice for managing credentials and settings.
 
---- 
+## CSV Output Format
+When specifying a CSV output path using the -Path parameter, the following fields are included in the CSV:
+
+test_case: A unique identifier for each test case.
+workspace_id: The workspace ID where the report resides.
+report_id: The report ID.
+page_id: The page name within the report.
+dataset_id: The dataset/semantic model ID.
+user_name: (Optional) The user for role-based security testing.
+row: The RLS role name.
+
+## Error Handling
+The module handles errors such as connection failures, invalid workspaces, missing datasets, and more.
+Errors are logged based on the specified LogOutput. When logging to Azure DevOps (ADO), errors trigger a failed build pipeline.
 
 ##################################################################################################################################################################
 ## SYNOPSIS
