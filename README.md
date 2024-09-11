@@ -13,68 +13,50 @@ This PowerShell module `Get-PowerBIReportPagesForTesting` helps identify the rep
 
 ## Features
 
-1. Identify reports and pages using a specific dataset across multiple Power BI workspaces.
-2. Supports different Power BI environments (`Public`, `Germany`, `China`, `USGov`, etc.).
-3. Flexible logging options (ADO, Host, Table).
-4. Outputs results to a CSV file or as an array of objects.
+  1. Identify reports and pages using a specific dataset across multiple Power BI workspaces.
+  2. Supports different Power BI environments (`Public`, `Germany`, `China`, `USGov`, etc.).
+  3. Flexible logging options (ADO, Host, Table).
+  4. Outputs results to a CSV file or as an array of objects.
 
 ## Prerequisites
 
-1. PowerShell 5.1 or higher.
-2. PowerShell Modules:
-  2.1 `MicrosoftPowerBIMgmt` (for Power BI operations)
-  2.2 `SqlServer` (for SQL-related operations)
-  2.3  `Pester` (for unit testing and test automation)
-  
-  If the modules are not installed, the script will install them automatically.
-
+1. Visual studio code
+2. PowerShell 5.1 or higher.
+3. PowerShell Modules:
+   Note:  If the modules are not installed, the script will install them automatically.
+   - `MicrosoftPowerBIMgmt` (for Power BI operations)
+   -  `SqlServer` (for SQL-related operations)
+4. Pester (for unit testing and test automation)
 ## Installation
-
-1. Clone the repository or download the `.psm1` file.
-2. Import the module using:
-
+To set up the Get-PowerBIReportPagesForTesting module on your local machine, follow these steps:
+1. Clone the repository to your local machine using visual studio code.
+   ![Clone in VS Code](Clonning%20in%20VS.jpg)
+3. After cloning, import the module into your PowerShell session:
     ```powershell
     Import-Module -Name Get-PowerBIReportPagesForTesting.psm1
     ```
-3. Install `Pester` for unit testing:
-
+4. If you plan to run unit tests, you will need to install Pester:
     ```powershell
     Install-Module -Name Pester -Force -Scope CurrentUser
     ```
+5. Alternatively, You can also install the module from the PowerShell Gallery using the following command:
+    ```powershell
+    Install-Module -Name Get-PowerBIReportPagesForTesting -AllowPrerelease
+    ```
 
-## Usage
+## Usage - Local Testing
 
 The function `Get-PowerBIReportPagesForTesting` has several parameters that allow you to customize its behavior.
 ### PowerShell Module Parameters:
-1. DatasetId (Mandatory)
-  -**Description**: The unique identifier of the dataset/semantic model to test.
-2. WorkspaceId (Mandatory)
-- **Description**: The unique identifier of the Power BI workspace containing the dataset.
-3. WorkspaceIdsToCheck (Mandatory)
-- **Description**: An array of workspace IDs where reports using the dataset should be identified.
-4. Credential (Mandatory)
-- **Description**: A PowerShell credential object for authenticating with the Power BI Service.
-5. TenantId (Mandatory)
-- **Description**: The Azure AD tenant ID where the Power BI workspace resides.
-6. Path (Mandatory)
-- **Description**: The path to the CSV file where results will be saved.
-7. LogOutput (Mandatory)
-- **Description**: Specifies the log destination.
-- **Options**: 
-  - 'ADO'
-  - 'Host'
-  - 'Table'
-8. Environment (Optional)
-- **Description**: Specifies the Power BI environment to connect to.
-- **Options**: 
-  - Public
-  - Germany
-  - China
-  - USGov
-  - USGovHigh
-  - USGovDoD
-9. RoleUserName (Optional)
-- **Description**: The name of the user for which Role-Level Security (RLS) testing will be conducted.
+1. DatasetId (Mandatory): The unique identifier of the dataset/semantic model to test.
+2. WorkspaceId (Mandatory): The unique identifier of the Power BI workspace containing the dataset.
+3. WorkspaceIdsToCheck (Mandatory): An array of workspace IDs where reports using the dataset should be identified.
+4. Credential (Mandatory): A PowerShell credential object for authenticating with the Power BI Service.
+5. TenantId (Mandatory): The Azure AD tenant ID where the Power BI workspace resides.
+6. Path (Mandatory): The path to the CSV file where results will be saved.
+7. LogOutput (Mandatory): Specifies the log destination. {'ADO','Host', 'Table'}
+8. Environment (Optional): Specifies the Power BI environment to connect to. {Public, Germany, China, USGov, USGovHigh, USGovDoD}
+9. RoleUserName (Optional): The name of the user for which Role-Level Security (RLS) testing will be conducted.
 
 
 ### Syntax
