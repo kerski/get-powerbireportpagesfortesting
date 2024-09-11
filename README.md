@@ -54,7 +54,7 @@ The function `Get-PowerBIReportPagesForTesting` has several parameters that allo
 4. Credential (Mandatory): A PowerShell credential object for authenticating with the Power BI Service.
 5. TenantId (Mandatory): The Azure AD tenant ID where the Power BI workspace resides.
 6. Path (Mandatory): The path to the CSV file where results will be saved.
-7. LogOutput (Mandatory): Specifies the log destination. {'ADO','Host', 'Table'}
+7. LogOutput (Mandatory): Specifies the log destination. {ADO, Host, Table}
    Logging Options
    ADO: Logs directly to Azure DevOps pipelines using task logging commands. Errors, warnings, and successful tests are logged with their respective statuses.
    Host: Logs output to the PowerShell console.
