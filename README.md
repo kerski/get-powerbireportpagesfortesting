@@ -173,6 +173,7 @@ By using the `Tests.config.json` file, you keep your sensitive information secur
 
 ## CSV Output Format
 When specifying a CSV output path using the -Path parameter, the following fields are included in the CSV:
+ ![CSV Optput](CSV%20Output.jpg)
 
 test_case: A unique identifier for each test case.
 workspace_id: The workspace ID where the report resides.
