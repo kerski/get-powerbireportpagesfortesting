@@ -7,9 +7,9 @@ schema: 2.0.0
 
 # Get-PowerBIReportPagesForTesting
 
-# Get-PowerBIReportPagesForTesting Module
+This PowerShell module `Get-PowerBIReportPagesForTesting.psm1` helps identify the reports and pages in a Power BI workspace that use a specific dataset/semantic model. It also provides logging capabilities for various output formats, including Azure DevOps (ADO) pipelines, host console, and tables.
 
-This PowerShell module `Get-PowerBIReportPagesForTesting` helps identify the reports and pages in a Power BI workspace that use a specific dataset/semantic model. It also provides logging capabilities for various output formats, including Azure DevOps (ADO) pipelines, host console, and tables.
+The file `Get-PowerBIReportPagesForTesting.Tests.ps1` contains a Pester test suite for the Get-PowerBIReportPagesForTesting PowerShell module, which verifies the module's functionality by testing various scenarios, including handling errors and validating outputs for different Power BI datasets and workspace configurations.
 
 ## Features
 
@@ -35,7 +35,7 @@ To set up the Get-PowerBIReportPagesForTesting module on your local machine, fol
     ```powershell
     Import-Module -Name Get-PowerBIReportPagesForTesting.psm1
     ```
-4. If you plan to run unit tests, you will need to install Pester:
+4. If you plan to run unit tests in file "Get-PowerBIReportPagesForTesting.Tests.ps1", you will need to install Pester:
     ```powershell
     Install-Module -Name Pester -Force -Scope CurrentUser
     ```
@@ -44,7 +44,7 @@ To set up the Get-PowerBIReportPagesForTesting module on your local machine, fol
     Install-Module -Name Get-PowerBIReportPagesForTesting -AllowPrerelease
     ```
 
-## Usage - Local Testing
+## Usage - Running the module locally to get the CSV file with the reports and pages in a Power BI workspace that use a specific dataset/semantic model.
 
 The function `Get-PowerBIReportPagesForTesting` has several parameters that allow you to customize its behavior.
 ### PowerShell Module Parameters:
@@ -60,6 +60,7 @@ The function `Get-PowerBIReportPagesForTesting` has several parameters that allo
 
 
 ### Syntax
+You can run the following command in your PowerShell session to execute the module. Replace the placeholders (<String>, <Array>, <PSCredential>) with your actual parameter values.
 
 ```powershell
 Get-PowerBIReportPagesForTesting -DatasetId <String> -WorkspaceId <String> `
@@ -67,8 +68,108 @@ Get-PowerBIReportPagesForTesting -DatasetId <String> -WorkspaceId <String> `
     -TenantId <String> -Path <String> `
     -LogOutput <String> [-Environment <Microsoft.PowerBI.Common.Abstractions.PowerBIEnvironmentType>] `
     [-RoleUserName <String>]
+```
 
+## EXAMPLES
 
+### EXAMPLE 1
+This command will identify and list all the report pages in specified Power BI workspaces that use a particular dataset, logging the results to Azure DevOps and saving the details to a CSV file.
+```
+Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestWorkspace2 `
+        -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -Credential $Credential `
+        -TenantId "$($variables.TestTenant)" `
+        -LogOutput "ADO" `
+        -Environment Public `
+        -Path $testPath1
+```
+
+### EXAMPLE 2
+
+This command will identify and list all the report pages in specified Power BI workspaces that use a particular dataset, outputting the results as an array of objects in a table format and saving the details to a CSV file.
+```
+Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestWorkspace2 `
+        -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -Credential $Credential `
+        -TenantId "$($variables.TestTenant)" `
+        -LogOutput "Table" `
+        -Environment Public `
+        -Path $testPath1
+```
+### EXAMPLE 3
+This example logs output to Azure DevOps while testing role-based access for the user testuser@domain.com.
+```
+Get-PowerBIReportPagesForTesting -DatasetId "TestDataset" `
+    -WorkspaceId "TestWorkspace2" `
+    -WorkspaceIdsToCheck @("workspace1", "workspace2") `
+    -Credential $Credential `
+    -TenantId "tenant-id-here" `
+    -Path "C:\output\PowerBIReportPages.csv" `
+    -LogOutput "ADO" `
+    -Environment "USGov" `
+    -RoleUserName "testuser@domain.com"
+```
+## Testing
+The module includes a suite of tests in `Get-PowerBIReportPagesForTesting.Tests.ps1` to ensure the module's functionality. The test script is written using Pester, a testing framework for PowerShell. 
+
+### Running Tests
+Install Pester (if not already installed):
+``` 
+Install-Module -Name Pester -Force -Scope CurrentUser
+```
+### Run the Tests:
+```
+Invoke-Pester
+```
+
+### Test Descriptions
+1. Module Existence: Verifies that the Get-PowerBIReportPagesForTesting module is installed.
+2. Invalid Workspace ID: Ensures the module handles invalid workspace IDs correctly.
+3. Invalid Workspace GUID: Tests the module's response to incorrect workspace GUIDs.
+4. Invalid Credentials: Checks how the module reacts to invalid credentials.
+5. Invalid Tenant ID: Validates the module’s response to an incorrect tenant ID.
+6. CSV File Content: Confirms the presence and correctness of data in CSV files generated by the module.
+7. Sample Model Data: Verifies data retrieval and correctness from a sample model dataset.
+
+## Configuration File (`Tests.config.json`)
+
+The `Tests.config.json` file is used to store important settings and credentials needed for running tests with the `Get-PowerBIReportPagesForTesting` module. It helps keep sensitive information secure by not including it directly in the source code.
+
+### What’s Inside `Tests.config.json`?
+
+This file contains key pieces of information such as:
+
+- **Client Secrets**: Passwords used for authentication.
+- **Service Principals**: User accounts with specific permissions.
+- **Dataset IDs**: Identifiers for different Power BI datasets.
+- **Workspace IDs**: Identifiers for different Power BI workspaces.
+- **Tenant ID**: Identifier for your Power BI tenant.
+
+### How to Use It
+
+1. **Create the File**: Create a file named `Tests.config.json` in the same folder as your test scripts.
+2. **Add Your Data**: Fill in the file with the necessary information in JSON format. Here’s a basic example:
+
+    ```json
+    {
+      "TestClientSecret": "your-client-secret",
+      "TestServicePrincipal": "your-service-principal",
+      "TestDataset1": "dataset-id-1",
+      "TestWorkspace1": "workspace-id-1",
+      "TestTenant": "tenant-id"
+    }
+    ```
+
+3. **Keep It Secret**: Make sure not to include this file in your version control system (like Git) to keep your sensitive information safe. You can do this by adding it to your `.gitignore` file.
+
+**Example `.gitignore` entry:**
+
+```gitignore
+# Ignore configuration file
+Tests.config.json
+```
+
+By using the `Tests.config.json` file, you keep your sensitive information secure and separate from your code, which is a best practice for managing credentials and settings.
+
+--- 
 
 ##################################################################################################################################################################
 ## SYNOPSIS
@@ -86,29 +187,6 @@ Get-PowerBIReportPagesForTesting [-DatasetId] <String> [-WorkspaceId] <String> [
 ## DESCRIPTION
 This module identifies the reports and pages in a Power BI workspace that use a specific dataset/semantic model.
 
-## EXAMPLES
-
-### EXAMPLE 1
-```
-Run tests for all datasets/semantic models in the workspace and log output using Azure DevOps' logging commands.
-Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestWorkspace2 `
-        -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -Credential $Credential `
-        -TenantId "$($variables.TestTenant)" `
-        -LogOutput "ADO" `
-        -Environment Public `
-        -Path $testPath1
-```
-
-### EXAMPLE 2
-```
-Run tests for specific datasets/semantic models in the workspace and return output in an array of objects (table).
-Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset2 -WorkspaceId $variables.TestWorkspace2 `
-        -WorkspaceIdsToCheck @($variables.TestWorkspaceToCheck2) ` -Credential $Credential `
-        -TenantId "$($variables.TestTenant)" `
-        -LogOutput "Table" `
-        -Environment Public `
-        -Path $testPath1
-```
 
 ## PARAMETERS
 
