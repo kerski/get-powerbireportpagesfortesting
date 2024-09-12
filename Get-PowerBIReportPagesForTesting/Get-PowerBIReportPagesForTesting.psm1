@@ -83,7 +83,7 @@ function Get-PowerBIReportPagesForTesting {
         [Parameter(Position = 5, Mandatory = $true)][String]$Path,
         [Parameter(Position = 6, Mandatory = $true)][String]$LogOutput,
         [Parameter(Position = 7, Mandatory = $false)][Microsoft.PowerBI.Common.Abstractions.PowerBIEnvironmentType]$Environment,
-        [Parameter(Position = 8, Mandatory = $false)]$RoleUserName
+        [Parameter(Position = 8, Mandatory = $false)][String]$RoleUserName
     )
 
     # Setup TLS 12
@@ -192,8 +192,9 @@ function Get-PowerBIReportPagesForTesting {
 
                     # Load result into XML and return
                     [System.Xml.XmlDocument]$xMLResult = New-Object System.Xml.XmlDocument
-                    $xMLResult.LoadXml($Result)
+                    $xMLResult.LoadXml($result)
                     $roles = $xMLResult.return.root.row
+                    
                 }
                 catch {
                     # Log errors from the pipeline execution
@@ -226,8 +227,9 @@ function Get-PowerBIReportPagesForTesting {
                                                 report_id   = $report.Id
                                                 page_id     = $page.Name
                                                 dataset_id  = $datasetObj.Id.Guid
-                                                user_name   = $roleUserName
-                                                row       = $row.name
+                                                user_name   = $RoleUserName
+                                                role       = $row.C2
+                                              
                                             }
                                             $counter++
                                         }# end foreach role
