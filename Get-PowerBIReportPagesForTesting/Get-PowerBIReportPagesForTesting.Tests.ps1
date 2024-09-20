@@ -15,6 +15,8 @@ Describe 'Get-PowerBIReportPagesForTesting' {
         $testPath1 = ".\PowerBIReportPages1.csv"
         $testPath2 = ".\PowerBIReportPages2.csv"
         $testPath3 = ".\PowerBIReportPages3.csv"
+        $testPath4 = ".\PowerBIReportPages4.csv"
+        $alreadyExistPath = ".\AlreadyExists.csv"
 
         # Delete files
         if(Test-Path -Path $testPath1){
@@ -27,7 +29,12 @@ Describe 'Get-PowerBIReportPagesForTesting' {
 
         if(Test-Path -path $testPath3){
             Remove-Item -Path $testPath3 -Force
-        }     
+        }   
+
+        if(Test-Path -path $testPath4){
+            Remove-Item -Path $testPath4 -Force
+        }   
+        
     }
     # Clean up
     AfterAll {
@@ -56,7 +63,12 @@ Describe 'Get-PowerBIReportPagesForTesting' {
         $errors1 = $results1 | Where-Object { $_.LogType -eq 'Error' }
         $len1 = $errors.Length 
         $errors1.Length | Should -BeGreaterThan 0
-        $errors1[$len1 - 1].message.StartsWith("Cannot bind parameter 'WorkspaceId'") | Should -Be $true
+        $errors1[$len1 - 1].message.StartsWith("Unable to connect to Workspace") | Should -Be $true
+
+        # Clean up
+        if(Test-Path -path $testPath1){
+            Remove-Item -Path $testPath1 -Force
+        }         
     }    
 
     # Check for bad workspace guid
@@ -72,7 +84,13 @@ Describe 'Get-PowerBIReportPagesForTesting' {
         $errors = $results | Where-Object { $_.LogType -eq 'Error' }
         $len = $errors.Length 
         $errors.Length | Should -BeGreaterThan 0
-        $errors[$len - 1].message.StartsWith("Exception calling `"Parse`" with `"1`" argument(s): `"Guid") | Should -Be $true
+        $errors[$len - 1].message.StartsWith("Unable to identify workspace name from") | Should -Be $true
+
+        # Clean up
+        if(Test-Path -path $testPath1){
+            Remove-Item -Path $testPath1 -Force
+        }         
+
     }
     
     # Check for bad Client Id
@@ -89,7 +107,11 @@ Describe 'Get-PowerBIReportPagesForTesting' {
         $len1 = $errors.Length 
         $errors1.Length | Should -BeGreaterThan 0
         $errors1[$len1 - 1].message.StartsWith("Unable to connect") | Should -Be $true
-     
+
+        # Clean up
+        if(Test-Path -path $testPath1){
+            Remove-Item -Path $testPath1 -Force
+        }         
     }
 
     # Check for bad tenant Id
@@ -106,6 +128,11 @@ Describe 'Get-PowerBIReportPagesForTesting' {
         $len1 = $errors.Length 
         $errors1.Length | Should -BeGreaterThan 0
         $errors1[$len1 - 1].message.StartsWith("Unable to connect") | Should -Be $true
+
+        # Clean up
+        if(Test-Path -path $testPath1){
+            Remove-Item -Path $testPath1 -Force
+        }          
     }
 
     # Check for Contents of csv file
@@ -115,19 +142,23 @@ Describe 'Get-PowerBIReportPagesForTesting' {
                 -TenantId "$($variables.TestTenant)" `
                 -LogOutput "Table" `
                 -Environment Public `
-                -Path $testPath1
+                -Path $testPath2
         )
 
         Write-Host ($results1 | Format-Table | Out-String)        
 
         #Check if the CSV file exists
-        Test-Path -Path $testPath1 | Should -Be $true
-        if($testPath1){
-            $csvContent = Import-Csv -Path $testPath1
+        Test-Path -Path $testPath2 | Should -Be $true
+        if($testPath2){
+            $csvContent = Import-Csv -Path $testPath2
             $csvContent.count | Should -BeGreaterThan 0
-            $csvHeader = (Get-Content -Path $testPath1 -First 1) -split ','
+            $csvHeader = (Get-Content -Path $testPath2 -First 1) -split ','
             $csvHeader.count | Should -Be 4
         } 
+        # Clean up
+        if(Test-Path -path $testPath2){
+            Remove-Item -Path $testPath2 -Force
+        }           
     }
 
     # Check for Contents of csv file
@@ -150,6 +181,11 @@ Describe 'Get-PowerBIReportPagesForTesting' {
             $csvHeader = (Get-Content -Path $testPath2 -First 1) -split ','
             $csvHeader.count | Should -Be 7
         } 
+
+        # Clean up
+        if(Test-Path -path $testPath2){
+            Remove-Item -Path $testPath2 -Force
+        }         
     }
 
     # Check for Path
@@ -159,7 +195,7 @@ Describe 'Get-PowerBIReportPagesForTesting' {
                 -TenantId "$($variables.TestTenant)" `
                 -LogOutput "Table" `
                 -Environment Public `
-                -Path $testPath2
+                -Path $alreadyExistPath
         )
        
         Write-Host ($results1 | Format-Table | Out-String)
@@ -167,6 +203,7 @@ Describe 'Get-PowerBIReportPagesForTesting' {
         $len1 = $errors.Length 
         $errors1.Length | Should -BeGreaterThan 0
         $errors1[$len1 - 1].message.StartsWith("The CSV file already exists") | Should -Be $true
+           
     }
     
     # Check for Path
@@ -193,6 +230,43 @@ Describe 'Get-PowerBIReportPagesForTesting' {
             $reportCheck = $psObj | Where-Object {$_.report_id -eq $variables.TestReportThatShouldAppear3}
             $reportCheck.Length | Should -BeGreaterThan 0
         } 
+
+        # Clean up
+        if(Test-Path -path $testPath3){
+            Remove-Item -Path $testPath3 -Force
+        }             
+    }    
+
+    # Check for Cross Workspace
+    It 'Should generate file for a dataset used cross workspaces' -Tag "Cross Workspace" {
+        $wsCheck = @($variables.TestWorkspaceToCheck1,$variables.TestWorkspaceToCheck4) 
+        $results1 = @(Get-PowerBIReportPagesForTesting -DatasetId $variables.TestDataset1 -WorkspaceId $variables.TestWorkspace1 `
+                -WorkspaceIdsToCheck $wsCheck ` -Credential $goodCredential `
+                -TenantId "$($variables.TestTenant)" `
+                -LogOutput "Table" `
+                -Environment Public `
+                -Path $testPath4
+        )
+        Write-Host ($results1 | Format-Table | Out-String)
+        #Check if the CSV file exists
+        Test-Path -Path $testPath4 | Should -Be $true
+        if($testPath4){
+            $csvContent = Import-Csv -Path $testPath4
+            $csvContent.count | Should -BeGreaterThan 0
+            $csvHeader = (Get-Content -Path $testPath4 -First 1) -split ','
+            $csvHeader.count | Should -Be 7
+
+            # Check if report exists
+            $jsonContent = $csvContent | ConvertTo-Json
+            $psObj = $jsonContent | ConvertFrom-Json
+            $reportCheck = $psObj | Where-Object {$_.report_id -eq $variables.TestReportThatShouldAppear4}
+            $reportCheck.Length | Should -BeGreaterThan 0
+        } 
+
+        # Clean up
+        if(Test-Path -path $testPath4){
+           #Remove-Item -Path $testPath4 -Force
+        }             
     }    
 
 }

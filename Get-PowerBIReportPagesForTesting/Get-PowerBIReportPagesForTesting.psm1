@@ -131,6 +131,14 @@ function Get-PowerBIReportPagesForTesting {
         }
 
         try{
+            # Get Workspace
+            $wsObj = Get-PowerBIWorkspace -Id $WorkspaceId
+
+            # Check returned object
+            if(-not $wsObj){
+                throw "Unable to connect to Workspace $($WorkspaceId)."
+            }
+
             # Get Dataset
             $datasetObj = Get-PowerBIDataset -WorkspaceId $WorkspaceId -Id $DatasetId -Verbose
 
@@ -176,7 +184,7 @@ function Get-PowerBIReportPagesForTesting {
                 $errorCount++
             }
             else {
-                $dataSource = "$($xMLAPrefix)$($workspaceName)"
+                $dataSource = "$($xMLAPrefix)$($wsObj.Name)"
                 # Get Roles
                 try {
                     $result = Invoke-ASCmd -Server $datasource `
@@ -194,7 +202,6 @@ function Get-PowerBIReportPagesForTesting {
                     [System.Xml.XmlDocument]$xMLResult = New-Object System.Xml.XmlDocument
                     $xMLResult.LoadXml($result)
                     $roles = $xMLResult.return.root.row
-                    
                 }
                 catch {
                     # Log errors from the pipeline execution
@@ -228,8 +235,7 @@ function Get-PowerBIReportPagesForTesting {
                                                 page_id     = $page.Name
                                                 dataset_id  = $datasetObj.Id.Guid
                                                 user_name   = $RoleUserName
-                                                role       = $row.C2
-                                              
+                                                role       = $row.LastChild.InnerText
                                             }
                                             $counter++
                                         }# end foreach role
